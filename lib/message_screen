@@ -1,0 +1,113 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+class ChatScreen extends StatefulWidget {
+  final String boardName; // Name of the selected message board
+
+  ChatScreen({required this.boardName});
+
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _messageController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late String _username;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the current user's display name
+    _username = _auth.currentUser?.displayName ?? "Anonymous";
+  }
+
+  // Send message to Firestore
+  Future<void> _sendMessage() async {
+    if (_messageController.text.isNotEmpty) {
+      await FirebaseFirestore.instance
+          .collection('message_boards')
+          .doc(widget.boardName) // Use the board name
+          .collection('messages')
+          .add({
+        'username': _username,
+        'message': _messageController.text,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      _messageController.clear(); // Clear message input after sending
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.boardName), // Set board name as the title
+      ),
+      body: Column(
+        children: [
+          // Chat messages list
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('message_boards')
+                  .doc(widget.boardName)
+                  .collection('messages')
+                  .orderBy('timestamp')
+                  .snapshots(), // Listen for real-time updates
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final messages = snapshot.data!.docs;
+
+                return ListView.builder(
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    var messageData = messages[index];
+                    var messageText = messageData['message'];
+                    var messageSender = messageData['username'];
+                    var messageTime = (messageData['timestamp'] as Timestamp)
+                        .toDate()
+                        .toLocal()
+                        .toString();
+
+                    return ListTile(
+                      title: Text(messageSender), // Display username
+                      subtitle: Text(messageText), // Display message
+                      trailing: Text(messageTime), // Display timestamp
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          // Message input field
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: InputDecoration(
+                      labelText: 'Type your message...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "638432264585",
+    "project_id": "liftboard-7dc7f",
+    "storage_bucket": "liftboard-7dc7f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638432264585:android:63b8f470bd4ffe0563a158",
+        "android_client_info": {
+          "package_name": "com.example.mbapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8qKJ8F7RZXTM8iJbyAnvoJxe7PuR-V5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
